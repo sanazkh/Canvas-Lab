@@ -31,10 +31,6 @@ class CanvasViewController: UIViewController {
         trayDown = CGPoint(x: trayView.center.x ,y: trayView.center.y + trayDownOffset) // The position of the tray transposed down
     }
 
-    
-    
-    
-    
     @IBAction func didPanTray(_ sender: UIPanGestureRecognizer) {
         
         let translation = sender.translation(in: view)
@@ -73,47 +69,42 @@ class CanvasViewController: UIViewController {
     }
 
     @IBAction func didPanFace(_ sender: UIPanGestureRecognizer) {
-        commonFacePan(sender: sender, original: true)
-        
-    }
-    
-    
-    func commonFacePan(sender: UIPanGestureRecognizer, original: Bool){
         let translation = sender.translation(in: view)
+        let location = sender.location(in: view)
+        
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(onCopyFacePanRecognizer(sender:)))
+        let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(onPinch(sender:)))
+        let rotationGesture = UIRotationGestureRecognizer(target: self, action: #selector(onRotate(sender:)))
+        
         if sender.state == .began {
-            if original{
                 let imageView = sender.view as! UIImageView
                 newlyCreatedFace = UIImageView(image: imageView.image)
                 view.addSubview(newlyCreatedFace)
                 newlyCreatedFace.center = imageView.center
                 newlyCreatedFace.center.y += trayView.frame.origin.y
                 newlyCreatedFaceOriginalCenter = newlyCreatedFace.center
-            }else{
-                newlyCreatedFace = sender.view as! UIImageView
-            }
+                newlyCreatedFace.isUserInteractionEnabled = true
+            
+                newlyCreatedFace.addGestureRecognizer(panGesture)
+                newlyCreatedFace.addGestureRecognizer(pinchGesture)
+                newlyCreatedFace.addGestureRecognizer(rotationGesture)
             
         } else if sender.state == .changed {
             newlyCreatedFace.center = CGPoint(x: newlyCreatedFaceOriginalCenter.x + translation.x, y: newlyCreatedFaceOriginalCenter.y + translation.y)
             
         } else if sender.state == .ended {
-
-            let panGesture = UIPanGestureRecognizer(target: self, action: #selector(onCopyFacePanRecognizer(sender:)))
-            newlyCreatedFace.addGestureRecognizer(panGesture)
-            newlyCreatedFace.isUserInteractionEnabled = true
-            
-            let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(onPinch(sender:)))
-            newlyCreatedFace.addGestureRecognizer(pinchGesture)
-            newlyCreatedFace.isUserInteractionEnabled = true
-            
-            let rotationGesture = UIRotationGestureRecognizer(target: self, action: #selector(onRotate(sender:)))
-            newlyCreatedFace.addGestureRecognizer(rotationGesture)
-            newlyCreatedFace.isUserInteractionEnabled = true
             
         }
+        
     }
     
+
+    
     @objc func onRotate(sender: UIRotationGestureRecognizer){
-        
+        let rotation = sender.rotation
+        let imageView = sender.view as! UIImageView
+        imageView.transform = imageView.transform.rotated(by: rotation)
+        sender.rotation = 0
     }
     
     @objc func onCopyFacePanRecognizer(sender: UIPanGestureRecognizer){
